@@ -1,28 +1,33 @@
-import { useState } from 'react'
+import { useMemo, useState } from "react";
+import Header from "./components/Header";
+import SearchBar from "./components/SearchBar";
+import MaidList from "./components/MaidList";
+import { maids as allMaids } from "./data/maids";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [query, setQuery] = useState("");
+
+  const filteredMaids = useMemo(() => {
+    if (!query.trim()) return allMaids;
+    const q = query.trim().toLowerCase();
+    return allMaids.filter((m) => {
+      const areaMatch = [m.area, m.city, m.pincode, ...(m.localities || [])]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q));
+      return areaMatch;
+    });
+  }, [query]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-800">
+      <Header />
+      <main className="mx-auto max-w-6xl px-4 pb-20">
+        <div className="sticky top-0 z-10 -mx-4 mb-6 border-b border-slate-200/70 bg-white/70 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/50">
+          <SearchBar value={query} onSearch={setQuery} />
         </div>
-      </div>
-    </div>
-  )
-}
 
-export default App
+        <MaidList maids={filteredMaids} total={allMaids.length} query={query} />
+      </main>
+    </div>
+  );
+}
